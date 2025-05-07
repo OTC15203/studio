@@ -1,3 +1,6 @@
+
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
 // Aliased Lucide icons to avoid conflict with Recharts components
@@ -174,3 +177,4 @@ function MetricCard({ title, value, icon, trend, color = "text-foreground" }: Me
 // Removed incorrect re-declarations of RechartsBarChart and RechartsLineChart
 // const RechartsBarChart = Bar; // This was incorrect
 // const RechartsLineChart = Line; // This was incorrect
+
