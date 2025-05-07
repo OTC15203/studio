@@ -28,9 +28,14 @@ body {
     --input: 0 0% 89.8%;
     --ring: 183 100% 40%; /* Teal */
     
-    --chart-1: 45 100% 52%; /* Bright Yellow - Profit/Positive */
-    --chart-2: 1 79% 56%;   /* Deep Red - Expenses/Negative */
-    --chart-3: 183 100% 36%;/* Teal - Revenue */
+    --positive: 45 100% 52%; /* Bright Yellow - Profit/Positive Values */
+    --negative: 1 79% 56%;   /* Deep Red - Expenses/Negative Values */
+    --neutral: 183 100% 36%; /* Teal - Revenue/Neutral Info */
+
+
+    --chart-1: var(--positive); 
+    --chart-2: var(--negative);
+    --chart-3: var(--neutral); 
     --chart-4: 210 50% 60%; /* Neutral Blue */
     --chart-5: 200 60% 50%; /* Another Neutral Blue/Cyan */
 
@@ -76,7 +81,7 @@ body {
     --input: 212 15% 22%; 
     --ring: 183 100% 40%; /* Teal for focus rings */
     
-    /* Chart colors already defined in :root are fine for dark theme too if they are HSL vars */
+    /* Chart colors use the CSS variables defined in :root */
 
     --sidebar-background: 212 18% 12%; /* Even darker for sidebar */
     --sidebar-foreground: 0 0% 80%; /* Lighter text for sidebar */
@@ -95,5 +100,26 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-positive {
+    color: hsl(var(--positive));
+  }
+  .text-negative {
+    color: hsl(var(--negative));
+  }
+  .text-neutral {
+    color: hsl(var(--neutral));
+  }
+  .bg-positive {
+    background-color: hsl(var(--positive));
+  }
+  .bg-negative {
+    background-color: hsl(var(--negative));
+  }
+  .bg-neutral {
+    background-color: hsl(var(--neutral));
   }
 }

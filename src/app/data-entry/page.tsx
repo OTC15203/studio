@@ -13,7 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from '@/hooks/use-toast';
 import { addTransaction } from '@/services/blockchain';
 import { detectManipulationAttempts } from '@/ai/flows/threat-detection';
-import { PlusCircle, Upload } from 'lucide-react';
+import { PlusCircle, Upload, Loader2, FileCheck2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const transactionSchema = z.object({
   type: z.enum(['revenue', 'expense'], { required_error: "Transaction type is required." }),
@@ -22,12 +23,16 @@ const transactionSchema = z.object({
   description: z.string().min(1, { message: "Description is required."}).max(200),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Invalid date format." }),
   category: z.string().min(1, {message: "Category is required."}),
+  tags: z.string().optional().describe("Comma-separated tags for easier filtering and organization."),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function DataEntryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isFileProcessing, setIsFileProcessing] = useState(false);
+
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -38,6 +43,7 @@ export default function DataEntryPage() {
       description: '',
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
       category: '',
+      tags: '',
     },
   });
 
@@ -50,10 +56,8 @@ export default function DataEntryPage() {
         toast({
           variant: "destructive",
           title: "Potential Threat Detected!",
-          description: `AI analysis flagged this transaction: ${threatResult.threatDetails?.type || 'Unknown threat'}. Please review carefully.`,
+          description: `AI analysis flagged this transaction: ${threatResult.threatDetails?.type || 'Unknown threat'}. Please review carefully. Submission proceeded with warning.`,
         });
-        // Optionally, prevent submission or require confirmation
-        // For now, we'll proceed but with a warning
       }
 
       // Blockchain Integration
@@ -68,10 +72,10 @@ export default function DataEntryPage() {
         ),
       });
 
-      // TODO: Actual data saving to database or state management
       console.log("Transaction Data:", data);
       console.log("Blockchain Transaction:", blockchainTransaction);
-      form.reset(); // Reset form after successful submission
+      form.reset(); 
+      setUploadedFile(null);
 
     } catch (error) {
       console.error("Submission error:", error);
@@ -88,12 +92,18 @@ export default function DataEntryPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // TODO: Implement file parsing (e.g., CSV, QIF) and automated entry creation
-      console.log("Uploaded file:", file.name);
-      toast({
-        title: "File Uploaded",
-        description: `${file.name} is ready for processing (feature coming soon).`,
-      });
+      setUploadedFile(file);
+      setIsFileProcessing(true);
+      // Simulate file processing
+      setTimeout(() => {
+        setIsFileProcessing(false);
+        toast({
+          title: "File Ready",
+          description: `${file.name} has been processed. (Automated data extraction is a future feature). You can now submit the form if other fields are manually filled.`,
+        });
+        // In a real app, you'd parse the file here and potentially populate form fields.
+        // For now, we just acknowledge the file.
+      }, 2000);
     }
   };
 
@@ -107,20 +117,27 @@ export default function DataEntryPage() {
             New Transaction Entry
           </CardTitle>
           <CardDescription>
-            Manually add revenue or expense transactions. For automated entries, use the upload feature.
+            Manually add revenue or expense transactions. For automated entries from supported files, use the upload feature.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6">
-            <Button variant="outline" className="w-full" onClick={() => document.getElementById('fileUploadInput')?.click()}>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Transaction File (CSV, QIF)
+          <div className="mb-6 p-4 border rounded-md bg-muted/20">
+            <h3 className="text-lg font-medium mb-2">Automated Entry (Beta)</h3>
+            <Button variant="outline" className="w-full mb-2" onClick={() => document.getElementById('fileUploadInput')?.click()} disabled={isFileProcessing}>
+              {isFileProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {isFileProcessing ? 'Processing File...' : (uploadedFile ? `Change File: ${uploadedFile.name}` : 'Upload Transaction File (CSV, QIF)')}
             </Button>
-            <input type="file" id="fileUploadInput" accept=".csv,.qif" className="hidden" onChange={handleFileUpload} />
-            <p className="text-xs text-muted-foreground mt-2 text-center">Automated processing of uploaded files is under development.</p>
+            <input type="file" id="fileUploadInput" accept=".csv,.qif,.xlsx" className="hidden" onChange={handleFileUpload} />
+            {uploadedFile && !isFileProcessing && (
+                <div className="text-sm text-green-600 flex items-center gap-2">
+                    <FileCheck2 className="h-4 w-4" /> 
+                    <span>{uploadedFile.name} is ready. (Manual details still required for now)</span>
+                </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-2 text-center">Automated data extraction from uploaded files is under development.</p>
           </div>
 
-          <div className="relative my-4">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -161,7 +178,7 @@ export default function DataEntryPage() {
                     <FormItem>
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 100.00" {...field} />
+                        <Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -184,7 +201,9 @@ export default function DataEntryPage() {
                           <SelectItem value="EUR">EUR - Euro</SelectItem>
                           <SelectItem value="GBP">GBP - British Pound</SelectItem>
                           <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
-                           {/* Add more currencies as needed */}
+                          <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                          <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                          <SelectItem value="CHF">CHF - Swiss Franc</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -200,7 +219,7 @@ export default function DataEntryPage() {
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Sales, Marketing, Utilities" {...field} />
+                      <Input placeholder="e.g., Sales, Marketing, Utilities, Software" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -214,8 +233,25 @@ export default function DataEntryPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Detailed description of the transaction" {...field} />
+                      <Textarea placeholder="Detailed description of the transaction (max 200 characters)" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+               <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., project-alpha, q1-campaign, travel" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Comma-separated tags for easier filtering and organization.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -235,8 +271,8 @@ export default function DataEntryPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Add Transaction"}
+              <Button type="submit" className="w-full" disabled={isSubmitting || isFileProcessing}>
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Add Transaction"}
               </Button>
             </form>
           </Form>
