@@ -26,6 +26,7 @@ const DetectManipulationAttemptsOutputSchema = z.object({
       type: z.string().describe('The type of threat.'),
       severity: z.string().describe('The severity of the threat.'),
       timestamp: z.number().describe('The timestamp of the threat.'),
+      details: z.string().optional().describe('Additional details about the detected threat.'),
     })
     .optional()
     .describe('Details of the detected threat, if any.'),
@@ -36,6 +37,11 @@ export async function detectManipulationAttempts(input: DetectManipulationAttemp
   return detectManipulationAttemptsFlow(input);
 }
 
+// This flow now primarily orchestrates calling the threat detection service,
+// which in turn calls the /api/threats endpoint.
+// If this Genkit flow itself were to use an LLM to interpret the transactionData
+// and decide if it's a threat (without calling the service), the prompt-based approach
+// would be different. For now, it relies on the `detectThreat` service.
 const detectManipulationAttemptsFlow = ai.defineFlow(
   {
     name: 'detectManipulationAttemptsFlow',
@@ -43,6 +49,8 @@ const detectManipulationAttemptsFlow = ai.defineFlow(
     outputSchema: DetectManipulationAttemptsOutputSchema,
   },
   async input => {
+    // The `input.transactionData` is passed to the service.
+    // The service now calls the `/api/threats` endpoint with this data.
     const threat = await detectThreat(input.transactionData);
 
     const threatDetected = threat !== null;
