@@ -4,7 +4,7 @@
 import React from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Wallet } from "lucide-react";
+import { Bell, Wallet, User } from "lucide-react"; // Added User icon
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 export default function AppHeader() {
@@ -27,10 +27,13 @@ export default function AppHeader() {
         </Button>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Wallet className="h-6 w-6" /> 
-          <span className="sr-only">access to wallets currencies and financial withdrawal</span>
+          <span className="sr-only">i need my wallets to function</span>
+        </Button>
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <User className="h-6 w-6" />
+          <span className="sr-only">User Profile</span>
         </Button>
       </div>
     </header>
   );
 }
-
