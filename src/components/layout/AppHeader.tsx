@@ -1,9 +1,10 @@
+
 "use client";
 
 import React from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Wallet } from "lucide-react"; // Changed UserCircle to Wallet
+import { Bell, Wallet } from "lucide-react";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 export default function AppHeader() {
@@ -26,9 +27,10 @@ export default function AppHeader() {
         </Button>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Wallet className="h-6 w-6" /> 
-          <span className="sr-only">Wallets, Currencies &amp; Withdrawal</span>
+          <span className="sr-only">access to wallets currencies and financial withdrawal</span>
         </Button>
       </div>
     </header>
   );
 }
+
