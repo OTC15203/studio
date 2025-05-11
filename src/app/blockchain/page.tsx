@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Blocks, Search, ListFilter, ArrowUpDown, Copy, CalendarDays, Check } from "lucide-react"; // Changed Filter to ListFilter
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from '@/components/ui/badge'; 
-import type { Transaction } from '@/services/blockchain'; // Assuming type definition from service
+import type { Transaction } from '@/services/blockchain'; 
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import type { DateRange } from "react-day-picker";
 import { toast } from '@/hooks/use-toast';
@@ -21,22 +21,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ALL_TRANSACTION_TYPES = ['revenue', 'expense', 'system_update', 'data_access', 'config_change', 'user_auth', 'api_call', 'security_event', 'audit_log']; // Added even more types
+const ALL_TRANSACTION_TYPES = ['revenue', 'expense', 'system_update', 'data_access', 'config_change', 'user_auth', 'api_call', 'security_event', 'audit_log']; 
 
-// Mock blockchain data fetching function (replace with actual API call)
+// Mock blockchain data fetching function
 async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: Transaction[], total: number}> {
-  await new Promise(resolve => setTimeout(resolve, 750)); // Simulate API delay
-  // This is a mock implementation
-  // In a real app, you'd fetch from an API: `await fetch('/api/blockchain?page=${page}&limit=${limit}&filters=${JSON.stringify(filters)}')`
+  await new Promise(resolve => setTimeout(resolve, 750)); 
   
-  const allTransactions: Transaction[] = Array.from({ length: 153 }, (_, i) => { // Significantly increased total transactions
+  const allTransactions: Transaction[] = Array.from({ length: 153 }, (_, i) => { 
       const type = ALL_TRANSACTION_TYPES[i % ALL_TRANSACTION_TYPES.length];
       const isFinancial = type === 'revenue' || type === 'expense';
       const isSystem = type === 'system_update' || type === 'config_change';
       const isDataAccess = type === 'data_access';
       const isUserAuth = type === 'user_auth';
       const isApiCall = type === 'api_call';
-      // New types
       const isSecurityEvent = type === 'security_event';
       const isAuditLog = type === 'audit_log';
 
@@ -45,11 +42,11 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
         id: `tx-${i + 1}-${Date.now()}`,
         data: { 
           type,
-          amount: isFinancial ? parseFloat((Math.random() * 15000).toFixed(2)) : undefined, // Increased amount range
-          currency: isFinancial ? (['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF'][i % 7]) : undefined, // Added AUD, CHF
+          amount: isFinancial ? parseFloat((Math.random() * 15000).toFixed(2)) : undefined, 
+          currency: isFinancial ? (['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF'][i % 7]) : undefined, 
           description: isFinancial ? `Financial Transaction ${i+1}` : 
                        `${type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1)} Event ${i+1}`,
-          user: `user_${(i%20)+1}@example.com`, // Further increased user diversity
+          user: `user_${(i%20)+1}@example.com`, 
           details: isSystem ? { parameter: `param_${i%3}`, oldValue: `${i*10}`, newValue: `${i*10 + 5}` } :
                      isDataAccess ? { resource: `db_table_${i%4}`, action: (i%2 === 0 ? 'read' : 'write'), count: (i+1)*5 } :
                    isUserAuth ? { event: (i%3 === 0 ? 'login_success' : (i%3 === 1 ? 'logout' : 'password_reset_request')), ip: `192.168.${i%256}.${i%256}` } :
@@ -58,15 +55,14 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
                    isAuditLog ? { entity: `document_${i+100}`, action: 'viewed', editor: `editor_${(i%7)+1}@example.com` } :
                     { notes: 'Standard operational procedure' }
         },
-        timestamp: Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 90), // Random time in last 90 days
-        blockNumber: 10000 + i, // Mock block number
-        confirmations: Math.floor(Math.random() * 100) + 1, // Mock confirmations
+        timestamp: Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 90), 
+        blockNumber: 10000 + i, 
+        confirmations: Math.floor(Math.random() * 100) + 1, 
       };
     });
 
   let filteredTransactions = allTransactions;
 
-  // Apply search filter
   if (filters.searchTerm) {
     const term = filters.searchTerm.toLowerCase();
     filteredTransactions = filteredTransactions.filter(tx => 
@@ -77,12 +73,10 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
     );
   }
 
-  // Apply type filter
   if (filters.types && filters.types.length > 0) {
     filteredTransactions = filteredTransactions.filter(tx => filters.types.includes(tx.data.type));
   }
 
-  // Apply date range filter
   if (filters.dateRange?.from && filters.dateRange?.to) {
     filteredTransactions = filteredTransactions.filter(tx => {
       const txDate = new Date(tx.timestamp);
@@ -105,7 +99,7 @@ export default function BlockchainLogPage() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   
-  const itemsPerPage = 15; // Increased items per page
+  const itemsPerPage = 15; 
 
   const loadTransactions = useCallback(async () => {
     setIsLoading(true);
@@ -126,7 +120,7 @@ export default function BlockchainLogPage() {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1); 
   };
 
   const handleTypeToggle = (type: string) => {
@@ -238,7 +232,7 @@ export default function BlockchainLogPage() {
                        tx.data.type === 'system_update' || tx.data.type === 'config_change' ? 'secondary' :
                        tx.data.type === 'user_auth' || tx.data.type === 'api_call' || tx.data.type === 'security_event' || tx.data.type === 'audit_log' ? 'outline' : 
                        'outline' 
-                      } className="capitalize text-xs py-0.5 px-1.5"> {/* Made badges smaller */}
+                      } className="capitalize text-xs py-0.5 px-1.5"> 
                        {tx.data.type?.replace('_', ' ') || 'N/A'}
                       </Badge>
                     </TableCell>

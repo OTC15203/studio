@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,18 +15,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Threat } from '@/services/threat-detection'; // Assuming type from service
+import type { Threat } from '@/services/threat-detection'; 
+
+// Extended Threat type for local state
+interface DisplayThreat extends Threat {
+  status: 'new' | 'investigating' | 'resolved';
+  details: string;
+}
 
 // Mock threat detection data fetching
-async function fetchThreats(filters: { severities: string[], statuses: string[] }): Promise<Threat[]> {
-  await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate API delay
-  const allThreats: (Threat & { status: 'new' | 'investigating' | 'resolved', details: string })[] = [
+async function fetchThreats(filters: { severities: string[], statuses: string[] }): Promise<DisplayThreat[]> {
+  await new Promise(resolve => setTimeout(resolve, 1200)); 
+  const allThreats: DisplayThreat[] = [
     { id: 'threat-001', type: 'SQL Injection Attempt', severity: 'High', timestamp: Date.now() - 3600000, status: 'new', details: 'Detected on login endpoint from IP 192.168.1.100. Payload: OR 1=1' },
     { id: 'threat-002', type: 'Unusual Data Modification', severity: 'Medium', timestamp: Date.now() - 7200000, status: 'investigating', details: 'User account "admin" modified critical financial data outside business hours.' },
     { id: 'threat-003', type: 'Failed Login Spike', severity: 'Low', timestamp: Date.now() - 10800000, status: 'resolved', details: 'Multiple failed login attempts for user "guest". Blocked IP for 24h.' },
     { id: 'threat-004', type: 'Cross-Site Scripting (XSS)', severity: 'High', timestamp: Date.now() - 86400000, status: 'new', details: 'Potential XSS in user profile comments section. Input: <script>alert(1)</script>' },
     { id: 'threat-005', type: 'Anomalous Network Traffic', severity: 'Medium', timestamp: Date.now() - 172800000, status: 'investigating', details: 'Unusual outbound traffic to unknown C&C server from internal host 10.0.5.23.' },
-     { id: 'threat-006', type: 'Data Exfiltration Pattern', severity: 'Critical', timestamp: Date.now() - 600000, status: 'new', details: 'Large volume of sensitive data being transferred from database server to external IP.' },
+    { id: 'threat-006', type: 'Data Exfiltration Pattern', severity: 'Critical', timestamp: Date.now() - 600000, status: 'new', details: 'Large volume of sensitive data being transferred from database server to external IP.' },
     { id: 'threat-007', type: 'Privilege Escalation Attempt', severity: 'High', timestamp: Date.now() - 2400000, status: 'investigating', details: 'User "support_agent" attempted to access admin-only functions.' },
   ];
   
@@ -43,29 +49,35 @@ async function fetchThreats(filters: { severities: string[], statuses: string[] 
 
 
 export default function ThreatsPage() {
-  const [threats, setThreats] = useState<(Threat & { status: 'new' | 'investigating' | 'resolved', details: string })[]>([]);
+  const [threats, setThreats] = useState<DisplayThreat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedThreat, setSelectedThreat] = useState<(Threat & { status: 'new' | 'investigating' | 'resolved', details: string }) | null>(null);
+  const [selectedThreat, setSelectedThreat] = useState<DisplayThreat | null>(null);
 
   const [severityFilter, setSeverityFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
-  const loadThreats = async () => {
+  const loadThreats = useCallback(async () => {
     setIsLoading(true);
     const fetchedThreats = await fetchThreats({ severities: severityFilter, statuses: statusFilter });
     setThreats(fetchedThreats);
     setIsLoading(false);
-  };
+    if (fetchedThreats.length > 0 && !selectedThreat) {
+      setSelectedThreat(fetchedThreats[0]);
+    } else if (fetchedThreats.length === 0) {
+      setSelectedThreat(null);
+    }
+  }, [severityFilter, statusFilter, selectedThreat]);
+
 
   useEffect(() => {
     loadThreats();
-  }, [severityFilter, statusFilter]);
+  }, [loadThreats]); // Removed severityFilter and statusFilter to rely on useCallback dependency
 
   const getSeverityBadgeVariant = (severity: string): "destructive" | "default" | "secondary" | "outline" => {
     switch (severity.toLowerCase()) {
       case 'critical': return "destructive";
       case 'high': return "destructive";
-      case 'medium': return "default"; // will use primary color (teal)
+      case 'medium': return "default"; 
       case 'low': return "secondary";
       default: return "outline";
     }
@@ -76,16 +88,15 @@ export default function ThreatsPage() {
       case 'critical': return <ShieldAlert className="h-5 w-5 text-red-400" />;
       case 'high': return <AlertTriangle className="h-5 w-5 text-red-500" />;
       case 'medium': return <Info className="h-5 w-5 text-yellow-500" />;
-      case 'low': return <CheckCircle className="h-5 w-5 text-green-500" />; // Or a more neutral icon
+      case 'low': return <CheckCircle className="h-5 w-5 text-green-500" />; 
       default: return <Info className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
-  const handleThreatSelect = (threat: Threat & { status: 'new' | 'investigating' | 'resolved', details: string }) => {
+  const handleThreatSelect = (threat: DisplayThreat) => {
     setSelectedThreat(threat);
   };
   
-  // Function to update threat status (mock)
   const updateThreatStatus = (threatId: string, newStatus: 'new' | 'investigating' | 'resolved') => {
     setThreats(prevThreats => 
       prevThreats.map(t => t.id === threatId ? { ...t, status: newStatus } : t)

@@ -118,7 +118,7 @@ export default function ReportsPage() {
       revenue: data.revenue,
       expenses: data.expenses,
       profit: data.revenue - data.expenses,
-    })).sort((a, b) => parseISO(a.period).getTime() - parseISO(b.period).getTime());
+    })).sort((a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()); // Ensure correct date sorting for periods
   }, [filteredData]);
   
   const expenseBreakdown = useMemo(() => {
