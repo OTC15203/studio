@@ -3,7 +3,7 @@
 import React from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { UserCircle, Bell } from "lucide-react";
+import { Bell, Wallet } from "lucide-react"; // Changed UserCircle to Wallet
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 export default function AppHeader() {
@@ -25,8 +25,8 @@ export default function AppHeader() {
           <span className="sr-only">Notifications</span>
         </Button>
         <Button variant="ghost" size="icon" className="rounded-full">
-          <UserCircle className="h-6 w-6" />
-          <span className="sr-only">User Profile</span>
+          <Wallet className="h-6 w-6" /> 
+          <span className="sr-only">Wallets, Currencies &amp; Withdrawal</span>
         </Button>
       </div>
     </header>
