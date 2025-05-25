@@ -223,11 +223,7 @@ export default function ChainLogPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Tx ID / Block</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Primary Details</TableHead>
-                  <TableHead className="w-[250px]">Additional Info</TableHead> {/* New Column */}
-                  <TableHead className="text-right w-[180px]">Timestamp</TableHead>
+                  <TableHead className="w-[200px]">Tx ID / Block</TableHead><TableHead>Type</TableHead><TableHead>Primary Details</TableHead><TableHead className="w-[250px]">Additional Info</TableHead><TableHead className="text-right w-[180px]">Timestamp</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -241,25 +237,21 @@ export default function ChainLogPage() {
                         </Button>
                       </div>
                       <div className="text-xs text-muted-foreground">Block: {tx.blockNumber} ({tx.confirmations} confs)</div>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell><TableCell>
                       <Badge variant={getBadgeVariantForType(tx.data.type)} className="capitalize text-[10px] py-0.5 px-1.5 leading-tight"> 
                        {tx.data.type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs"> {/* max-w added */}
+                    </TableCell><TableCell className="max-w-xs"> {/* max-w added */}
                       <p className="truncate font-medium" title={tx.data.description}>{tx.data.description}</p>
                       {tx.data.amount && <p className="text-muted-foreground">Amount: {tx.data.currency} {tx.data.amount.toFixed(2)}</p>}
                       {tx.data.user && <p className="text-muted-foreground">User: {tx.data.user}</p>}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground max-w-md"> {/* New Cell, max-w added */}
+                    </TableCell><TableCell className="text-muted-foreground max-w-md"> {/* New Cell, max-w added */}
                       {tx.data.details && Object.entries(tx.data.details).slice(0,2).map(([key, value]) => ( // Show first 2 details
                         <div key={key} className="truncate" title={`${key}: ${value}`}>
                           <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {String(value).substring(0,30)}{String(value).length > 30 ? '...' : ''}
                         </div>
                       ))}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
+                    </TableCell><TableCell className="text-right text-muted-foreground">
                       <div className="flex items-center justify-end gap-1">
                         <CalendarDays className="h-3 w-3" />
                         {new Date(tx.timestamp).toLocaleString()}

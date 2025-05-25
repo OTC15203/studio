@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -207,10 +208,7 @@ export default function BlockchainLogPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[180px]">Tx ID / Block</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead className="text-right">Timestamp</TableHead>
+                  <TableHead className="w-[180px]">Tx ID / Block</TableHead><TableHead>Type</TableHead><TableHead>Details</TableHead><TableHead className="text-right">Timestamp</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -224,8 +222,7 @@ export default function BlockchainLogPage() {
                         </Button>
                       </div>
                       <div className="text-xs text-muted-foreground">Block: {tx.blockNumber} ({tx.confirmations} confs)</div>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell><TableCell>
                       <Badge variant={
                        tx.data.type === 'revenue' ? 'default' : 
                        tx.data.type === 'expense' ? 'destructive' : 
@@ -235,13 +232,11 @@ export default function BlockchainLogPage() {
                       } className="capitalize text-xs py-0.5 px-1.5"> 
                        {tx.data.type?.replace('_', ' ') || 'N/A'}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">
+                    </TableCell><TableCell className="text-xs">
                       <p className="truncate max-w-md" title={tx.data.description}>{tx.data.description}</p>
                       {tx.data.amount && <p className="text-muted-foreground">Amount: {tx.data.currency} {tx.data.amount.toFixed(2)}</p>}
                       {tx.data.user && <p className="text-muted-foreground">User: {tx.data.user}</p>}
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground">
+                    </TableCell><TableCell className="text-right text-xs text-muted-foreground">
                       <div className="flex items-center justify-end gap-1">
                         <CalendarDays className="h-3 w-3" />
                         {new Date(tx.timestamp).toLocaleString()}
