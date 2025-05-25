@@ -44,7 +44,7 @@ export default function AppHeader() {
         {/* Wallet Button with placeholder onClick handler */}
         <Button variant="ghost" size="icon" className="rounded-full" onClick={handleWalletClick} aria-label="Wallet">
           <Wallet className="h-6 w-6" />
-          <span className="sr-only">i need my wallets to function</span>
+          <span className="sr-only">functions not working</span>
         </Button>
         <Button variant="ghost" size="icon" className="rounded-full" aria-label="User Profile">
           <User className="h-6 w-6" />
