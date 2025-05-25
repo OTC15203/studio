@@ -8,6 +8,22 @@ import { Bell, Wallet, User } from "lucide-react";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 export default function AppHeader() {
+  const handleWalletClick = () => {
+    // TODO: Implement actual wallet connection logic here
+    // For now, we can check if MetaMask is available and log messages
+    if (typeof window.ethereum !== 'undefined') {
+      console.log('MetaMask is installed!');
+      // Example: try to request accounts
+      // window.ethereum.request({ method: 'eth_requestAccounts' })
+      //   .then(handles => console.log('Accounts requested:', handles))
+      //   .catch(err => console.error('Error requesting accounts:', err));
+      alert("Wallet functionality is under development. MetaMask is detected.");
+    } else {
+      console.warn('MetaMask is not installed. Please install it to use wallet features.');
+      alert('Wallet functionality is under development. MetaMask is not detected. Please install MetaMask.');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
       <div className="md:hidden">
@@ -21,15 +37,16 @@ export default function AppHeader() {
         </div>
       </div>
       <div className="ml-auto flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>
         </Button>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Wallet className="h-6 w-6" /> 
+        {/* Wallet Button with placeholder onClick handler */}
+        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleWalletClick} aria-label="Wallet">
+          <Wallet className="h-6 w-6" />
           <span className="sr-only">i need my wallets to function</span>
         </Button>
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button variant="ghost" size="icon" className="rounded-full" aria-label="User Profile">
           <User className="h-6 w-6" />
           <span className="sr-only">User Profile</span>
         </Button>
@@ -37,4 +54,3 @@ export default function AppHeader() {
     </header>
   );
 }
-
