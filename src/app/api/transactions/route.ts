@@ -1,30 +1,37 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 
-// This schema should ideally match or be derived from the one in data-entry/page.tsx
-// For consistency, ensure fields used in data-entry form are present here.
+// Define all possible transaction types, similar to those used in the chain log page
+const ALL_TRANSACTION_TYPES = [
+  'revenue', 'expense', 'system_update', 'data_access', 'config_change', 
+  'user_auth', 'api_call', 'security_event', 'audit_log', 'nft_mint', 
+  'token_transfer', 'contract_deploy', 'oracle_update'
+] as const; // Use 'as const' for Zod enum
+
+// Updated schema to be more generic for various blockchain/system events
 const transactionInputSchema = z.object({
-  type: z.enum(['revenue', 'expense']),
-  amount: z.coerce.number().positive(),
-  currency: z.string().min(3).max(3),
-  description: z.string().min(1).max(200),
+  type: z.enum(ALL_TRANSACTION_TYPES, { 
+    required_error: "Event type is required." 
+  }),
+  amount: z.coerce.number().positive({ message: "Amount, if provided, must be a positive number." }).optional(),
+  currency: z.string().min(2, {message: "Currency, if provided, must be 2-10 characters."}).max(10).optional(),
+  description: z.string().min(1, { message: "Description is required."}).max(500), // Increased max length
   date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Invalid date format." }),
-  category: z.string().min(1),
+  category: z.string().min(1, {message: "Category is required."}), // General purpose category
   tags: z.string().optional(),
-  // Add any other fields that might be part of the transaction data from the form
-  // For example, if 'user' or specific details are captured:
-  // user: z.string().email().optional(), 
-  // paymentMethod: z.string().optional(),
+  
+  // New optional fields for broader event types
+  network: z.string().optional().describe("The blockchain network (e.g., Ethereum, zkSync, Linea)"),
+  userAddress: z.string().optional().describe("Address of the user initiating or involved in the event."),
+  contractAddress: z.string().optional().describe("Address of the smart contract involved."),
+  referenceId: z.string().optional().describe("An ID to reference another entity or event (e.g., Tx Hash, NFT ID)."),
+  // Consider adding more specific fields if needed in future, like functionCalled, parameters for contract interactions etc.
 });
 
 export async function POST(request: NextRequest) {
   // TODO: Implement robust authentication and authorization.
-  // This is a placeholder for checking an API key or session token.
   // For example:
-  // const session = await getServerSession(authOptions); // if using NextAuth.js
-  // if (!session) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
   // const apiKey = request.headers.get('X-Internal-API-Key');
   // if (apiKey !== process.env.INTERNAL_API_KEY) {
   //    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -38,25 +45,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid input', details: parsedData.error.format() }, { status: 400 });
     }
 
-    const transactionData = parsedData.data;
+    const eventData = parsedData.data;
 
     // Simulate database interaction or further processing
-    // In a real application, you would save transactionData to your database here.
-    // For example: const savedTx = await db.transactions.create({ data: transactionData });
-    const newTransaction = {
-      id: `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      data: transactionData, // Echoing back the validated data
+    const newEventLog = {
+      id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      data: eventData, // Echoing back the validated data
       timestamp: Date.now(),
-      status: "logged", // Example of adding extra info from backend
+      status: "logged", 
     };
 
-    console.log('Transaction received and processed by API:', newTransaction);
+    console.log('Event received and processed by API:', newEventLog);
 
-    // Return the created transaction object
-    return NextResponse.json(newTransaction, { status: 201 });
+    // Return the created event log object
+    return NextResponse.json(newEventLog, { status: 201 });
   } catch (error) {
-    console.error('Error processing transaction via API:', error);
-    // Ensure a generic error message for production to avoid leaking sensitive details
+    console.error('Error processing event via API:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

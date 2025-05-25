@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -11,78 +12,106 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
-import { addTransaction } from '@/services/blockchain';
+import { addTransaction } from '@/services/blockchain'; // This service calls /api/transactions
 import { detectManipulationAttempts } from '@/ai/flows/threat-detection';
-import { PlusCircle, Upload, Loader2, FileCheck2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Upload, Loader2, FileCheck2, Activity } from 'lucide-react';
 
-const transactionSchema = z.object({
-  type: z.enum(['revenue', 'expense'], { required_error: "Transaction type is required." }),
-  amount: z.coerce.number().positive({ message: "Amount must be a positive number." }),
-  currency: z.string().min(3, { message: "Currency must be 3 characters."}).max(3),
-  description: z.string().min(1, { message: "Description is required."}).max(200),
+// Define all possible transaction/event types for the form
+const ALL_EVENT_TYPES = [
+  'revenue', 'expense', 'system_update', 'data_access', 'config_change', 
+  'user_auth', 'api_call', 'security_event', 'audit_log', 'nft_mint', 
+  'token_transfer', 'contract_deploy', 'oracle_update'
+] as const;
+
+// Updated Zod schema for the form, matching the backend
+const eventSchema = z.object({
+  type: z.enum(ALL_EVENT_TYPES, { required_error: "Event type is required." }),
+  amount: z.coerce.number().positive({ message: "Amount, if provided, must be a positive number." }).optional(),
+  currency: z.string().min(2, { message: "Currency, if provided, must be 2-10 characters."}).max(10).optional(),
+  description: z.string().min(1, { message: "Description is required."}).max(500),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Invalid date format." }),
   category: z.string().min(1, {message: "Category is required."}),
   tags: z.string().optional().describe("Comma-separated tags for easier filtering and organization."),
+  
+  network: z.string().optional(),
+  userAddress: z.string().optional(),
+  contractAddress: z.string().optional(),
+  referenceId: z.string().optional(),
 });
 
-type TransactionFormValues = z.infer<typeof transactionSchema>;
+type EventFormValues = z.infer<typeof eventSchema>;
 
 export default function DataEntryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isFileProcessing, setIsFileProcessing] = useState(false);
 
-
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+  const form = useForm<EventFormValues>({
+    resolver: zodResolver(eventSchema),
     defaultValues: {
-      type: 'revenue',
-      amount: 0,
-      currency: 'USD',
+      type: 'revenue', // Default to one of the types
+      // amount: 0, // Make amount undefined by default as it's optional
+      currency: 'USD', // Default currency if amount is provided
       description: '',
-      date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
+      date: new Date().toISOString().split('T')[0], // Today's date
       category: '',
       tags: '',
+      network: '',
+      userAddress: '',
+      contractAddress: '',
+      referenceId: '',
     },
   });
 
-  const onSubmit: SubmitHandler<TransactionFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<EventFormValues> = async (data) => {
     setIsSubmitting(true);
+    
+    // Filter out empty optional fields before sending to backend
+    const payload: Partial<EventFormValues> = { ...data };
+    for (const key in payload) {
+      if (payload[key as keyof EventFormValues] === '' || payload[key as keyof EventFormValues] === undefined) {
+        delete payload[key as keyof EventFormValues];
+      }
+    }
+    if (payload.amount === 0 && !Object.prototype.hasOwnProperty.call(data, 'amount')) { // If amount was not touched and is 0, treat as not provided.
+        delete payload.amount;
+    }
+
+
     try {
-      // AI Threat Detection
-      const threatResult = await detectManipulationAttempts({ transactionData: data });
+      // AI Threat Detection (remains flexible due to `any` input for transactionData)
+      const threatResult = await detectManipulationAttempts({ transactionData: payload });
       if (threatResult.threatDetected) {
         toast({
           variant: "destructive",
           title: "Potential Threat Detected!",
-          description: `AI analysis flagged this transaction: ${threatResult.threatDetails?.type || 'Unknown threat'}. Please review carefully. Submission proceeded with warning.`,
+          description: `AI analysis flagged this event: ${threatResult.threatDetails?.type || 'Unknown threat'}. Please review carefully. Submission proceeded with warning.`,
         });
       }
 
-      // Blockchain Integration
-      const blockchainTransaction = await addTransaction(data);
+      // Service call (addTransaction internally calls /api/transactions)
+      const loggedEvent = await addTransaction(payload); // `addTransaction` service expects `any`
       toast({
-        title: "Transaction Logged",
+        title: "Event Logged Successfully",
         description: (
           <div>
-            <p>Transaction successfully added to the immutable log.</p>
-            <p className="text-xs mt-1">Blockchain ID: {blockchainTransaction.id}</p>
+            <p>The event was successfully added to the immutable log.</p>
+            <p className="text-xs mt-1">Log ID: {loggedEvent.id}</p> {/* Assuming `id` is returned */}
           </div>
         ),
       });
 
-      console.log("Transaction Data:", data);
-      console.log("Blockchain Transaction:", blockchainTransaction);
+      console.log("Submitted Event Data:", payload);
+      console.log("API Response:", loggedEvent);
       form.reset(); 
       setUploadedFile(null);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission error:", error);
       toast({
         variant: "destructive",
         title: "Submission Error",
-        description: "Could not process the transaction. Please try again.",
+        description: error.message || "Could not process the event. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -94,30 +123,26 @@ export default function DataEntryPage() {
     if (file) {
       setUploadedFile(file);
       setIsFileProcessing(true);
-      // Simulate file processing
       setTimeout(() => {
         setIsFileProcessing(false);
         toast({
-          title: "File Ready",
-          description: `${file.name} has been processed. (Automated data extraction is a future feature). You can now submit the form if other fields are manually filled.`,
+          title: "File Processed (Simulated)",
+          description: `${file.name} ready. Automated data extraction is a future enhancement. Please fill details manually.`,
         });
-        // In a real app, you'd parse the file here and potentially populate form fields.
-        // For now, we just acknowledge the file.
       }, 2000);
     }
   };
-
 
   return (
     <div className="container mx-auto py-8">
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
-            <PlusCircle className="h-7 w-7 text-primary" />
-            New Transaction Entry
+            <Activity className="h-7 w-7 text-primary" /> {/* Changed Icon */}
+            Log New Event / Transaction
           </CardTitle>
           <CardDescription>
-            Manually add revenue or expense transactions. For automated entries from supported files, use the upload feature.
+            Manually log various system events, financial transactions, or blockchain interactions.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,16 +150,16 @@ export default function DataEntryPage() {
             <h3 className="text-lg font-medium mb-2">Automated Entry (Beta)</h3>
             <Button variant="outline" className="w-full mb-2" onClick={() => document.getElementById('fileUploadInput')?.click()} disabled={isFileProcessing}>
               {isFileProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              {isFileProcessing ? 'Processing File...' : (uploadedFile ? `Change File: ${uploadedFile.name}` : 'Upload Transaction File (CSV, QIF)')}
+              {isFileProcessing ? 'Processing File...' : (uploadedFile ? `Change File: ${uploadedFile.name}` : 'Upload Event File (CSV, JSON)')}
             </Button>
-            <input type="file" id="fileUploadInput" accept=".csv,.qif,.xlsx" className="hidden" onChange={handleFileUpload} />
+            <input type="file" id="fileUploadInput" accept=".csv,.json,.xlsx" className="hidden" onChange={handleFileUpload} />
             {uploadedFile && !isFileProcessing && (
                 <div className="text-sm text-green-600 flex items-center gap-2">
                     <FileCheck2 className="h-4 w-4" /> 
-                    <span>{uploadedFile.name} is ready. (Manual details still required for now)</span>
+                    <span>{uploadedFile.name} is ready. (Manual details still required)</span>
                 </div>
             )}
-            <p className="text-xs text-muted-foreground mt-2 text-center">Automated data extraction from uploaded files is under development.</p>
+            <p className="text-xs text-muted-foreground mt-2 text-center">Automated data extraction is under development.</p>
           </div>
 
           <div className="relative my-6">
@@ -153,16 +178,19 @@ export default function DataEntryPage() {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Transaction Type</FormLabel>
+                    <FormLabel>Event Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select transaction type" />
+                          <SelectValue placeholder="Select event type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="revenue">Revenue</SelectItem>
-                        <SelectItem value="expense">Expense</SelectItem>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {ALL_EVENT_TYPES.map(type => (
+                          <SelectItem key={type} value={type} className="capitalize">
+                            {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -176,10 +204,11 @@ export default function DataEntryPage() {
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount</FormLabel>
+                      <FormLabel>Amount (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g., 100.00" {...field} />
+                        <Input type="number" step="any" placeholder="e.g., 100.00 or 0.5" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
                       </FormControl>
+                      <FormDescription>Only for financial events. Must be positive.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -189,23 +218,11 @@ export default function DataEntryPage() {
                   name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Currency</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select currency" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="USD">USD - United States Dollar</SelectItem>
-                          <SelectItem value="EUR">EUR - Euro</SelectItem>
-                          <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                          <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
-                          <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
-                          <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
-                          <SelectItem value="CHF">CHF - Swiss Franc</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Currency (Optional)</FormLabel>
+                       <FormControl>
+                        <Input placeholder="e.g., USD, ETH, FISK" {...field} />
+                      </FormControl>
+                       <FormDescription>E.g., USD, EUR, ETH, BTC, FISK.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -219,8 +236,9 @@ export default function DataEntryPage() {
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Sales, Marketing, Utilities, Software" {...field} />
+                      <Input placeholder="e.g., Software Sales, System Maintenance, NFT Mint" {...field} />
                     </FormControl>
+                    <FormDescription>A general category for this event.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -233,25 +251,8 @@ export default function DataEntryPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Detailed description of the transaction (max 200 characters)" {...field} />
+                      <Textarea placeholder="Detailed description of the event (max 500 characters)" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-               <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., project-alpha, q1-campaign, travel" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Comma-separated tags for easier filtering and organization.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -270,9 +271,86 @@ export default function DataEntryPage() {
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="network"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Network (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Ethereum, Polygon, zkSync" {...field} />
+                    </FormControl>
+                    <FormDescription>Relevant blockchain network, if applicable.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="userAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>User Address (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 0x123..." {...field} />
+                    </FormControl>
+                     <FormDescription>User's blockchain address, if applicable.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="contractAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contract Address (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 0xabc..." {...field} />
+                    </FormControl>
+                     <FormDescription>Smart contract address, if applicable.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="referenceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reference ID (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Transaction Hash, NFT ID, Batch ID" {...field} />
+                    </FormControl>
+                    <FormDescription>Any relevant ID for cross-referencing.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., phase-15, security-audit, user-onboarding" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Comma-separated tags for easier filtering and organization.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button type="submit" className="w-full" disabled={isSubmitting || isFileProcessing}>
-                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Add Transaction"}
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting Event...</> : "Log Event"}
               </Button>
             </form>
           </Form>
@@ -281,3 +359,4 @@ export default function DataEntryPage() {
     </div>
   );
 }
+
