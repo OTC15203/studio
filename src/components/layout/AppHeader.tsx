@@ -4,7 +4,7 @@
 import React from 'react';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Wallet, User } from "lucide-react"; // Added User icon
+import { Bell, Wallet, User } from "lucide-react";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 export default function AppHeader() {
@@ -17,7 +17,7 @@ export default function AppHeader() {
         <ThirdEyeDomeIcon className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">Fisk Dimension</h1>
-          <p className="text-xs text-muted-foreground">THIRD EYE DOME</p>
+          <p className="text-xs text-muted-foreground">Beyond the Ledger, Within the Soul.</p>
         </div>
       </div>
       <div className="ml-auto flex items-center gap-4">
@@ -37,3 +37,4 @@ export default function AppHeader() {
     </header>
   );
 }
+

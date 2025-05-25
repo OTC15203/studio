@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -21,16 +22,22 @@ import {
   Settings,
   LogOut,
   HelpCircle,
+  GalleryVerticalEnd,
+  Mic,
+  Network,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/studio', label: 'AI Studio', icon: GalleryVerticalEnd },
   { href: '/data-entry', label: 'Data Entry', icon: DollarSign },
   { href: '/reports', label: 'Reports', icon: FileText },
   { href: '/forecasting', label: 'AI Forecasting', icon: Brain },
-  { href: '/blockchain', label: 'Blockchain Log', icon: Blocks },
+  { href: '/chain', label: 'Chain', icon: Blocks },
+  { href: '/voice', label: 'Voice', icon: Mic },
+  { href: '/phase-map', label: 'Phase Map', icon: Network },
   { href: '/threats', label: 'Threat Alerts', icon: ShieldAlert },
 ];
 
@@ -44,7 +51,7 @@ export default function AppSidebar() {
           <ThirdEyeDomeIcon className="h-8 w-8 text-primary hidden group-data-[collapsible=icon]:block" />
           <div className="group-data-[collapsible=icon]:hidden">
             <h2 className="text-lg font-semibold text-primary">Fisk Dimension</h2>
-            <p className="text-xs text-muted-foreground">THIRD EYE DOME</p>
+            <p className="text-xs text-muted-foreground">Beyond the Ledger, Within the Soul.</p>
           </div>
         </Link>
       </SidebarHeader>
@@ -94,3 +101,4 @@ export default function AppSidebar() {
     </>
   );
 }
+

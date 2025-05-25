@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Fisk Dimension - THIRD EYE DOME',
-  description: 'Advanced Financial Management and Threat Detection Platform',
+  description: 'Fisk Dimension: Beyond the Ledger, Within the Soul. An advanced platform for financial management, AI-driven insights, and blockchain integration across a 25-phase master structure.',
 };
 
 export default function RootLayout({
@@ -36,3 +36,4 @@ export default function RootLayout({
     </html>
   );
 }
+
