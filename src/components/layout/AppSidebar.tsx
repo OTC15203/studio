@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard, // Used for Home (Portal)
+  LayoutDashboard, 
   DollarSign,
   FileText,
   Brain,
@@ -22,12 +22,30 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  GalleryVerticalEnd, // Used for AI Studio
+  GalleryVerticalEnd, 
   Mic,
-  Network, // Used for Phase Map
-  ImageIcon, // For NFT Gallery (Changed from GalleryThumbnails for variety)
-  UserCircle2, // For Avatar
-  KanbanSquare, // For Symbolic Dashboard
+  Network, 
+  ImageIcon, 
+  UserCircle2, 
+  KanbanSquare,
+  SlidersHorizontal, // For Frequency Sync
+  PocketKnife, // For Frequency Oracle (tool/oracle)
+  Users, // For Round Table
+  BadgeCheck, // For Passport
+  Award, // For Badges
+  ServerCog, // For Node Init
+  Globe, // For Domain
+  Lock, // For Vault (Quantum Vault)
+  Zap, // For Lightning
+  Scroll, // For Legacy Artifacts
+  GitMerge, // For Genesis Bridge
+  PackageSearch, // For Mystery Box
+  TrendingUp, // For Ascension
+  TowerControl, // For Guardian Node
+  KeySquare, // For Cipher Sanctuary
+  ClipboardList, // For Quest Log
+  Atom, // For Soul Core
+  BookOpenText, // For Prophecy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
@@ -45,6 +63,25 @@ const navItems = [
   { href: '/voice', label: 'Voice Systems', icon: Mic },
   { href: '/phase-map', label: 'Phase Map', icon: Network },
   { href: '/threats', label: 'Threat Alerts', icon: ShieldAlert },
+  // New items based on the expanded list
+  { href: '/frequency-sync', label: 'Frequency Sync', icon: SlidersHorizontal },
+  { href: '/frequency-oracle', label: 'Frequency Oracle', icon: PocketKnife },
+  { href: '/round-table', label: 'Round Table', icon: Users },
+  { href: '/passport', label: 'Resonance Passport', icon: BadgeCheck },
+  { href: '/badges', label: 'Soulbound Badges', icon: Award },
+  { href: '/node-init', label: 'Node Init', icon: ServerCog },
+  { href: '/domain', label: 'Domain Sovereignty', icon: Globe },
+  { href: '/vault', label: 'Quantum Vault', icon: Lock },
+  { href: '/lightning', label: 'Lightning Bridge', icon: Zap },
+  { href: '/legacy-artifacts', label: 'Legacy Artifacts', icon: Scroll },
+  { href: '/genesis-bridge', label: 'Genesis Bridge', icon: GitMerge },
+  { href: '/mystery-box', label: 'Mystery Box Hub', icon: PackageSearch },
+  { href: '/ascension', label: 'Tiered Ascension', icon: TrendingUp },
+  { href: '/guardian-node', label: 'Guardian Node', icon: TowerControl },
+  { href: '/cipher-sanctuary', label: 'Cipher Sanctuary', icon: KeySquare },
+  { href: '/quest-log', label: 'Encrypted Quest Log', icon: ClipboardList },
+  { href: '/soul-core', label: 'Soul Matrix Core', icon: Atom },
+  { href: '/prophecy', label: 'Legacy Prophecy', icon: BookOpenText },
 ];
 
 export default function AppSidebar() {
