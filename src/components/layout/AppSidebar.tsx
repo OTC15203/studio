@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard,
+  LayoutDashboard, // Used for Home (Portal)
   DollarSign,
   FileText,
   Brain,
@@ -22,21 +22,27 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  GalleryVerticalEnd,
+  GalleryVerticalEnd, // Used for AI Studio
   Mic,
-  Network,
+  Network, // Used for Phase Map
+  ImageIcon, // For NFT Gallery (Changed from GalleryThumbnails for variety)
+  UserCircle2, // For Avatar
+  KanbanSquare, // For Symbolic Dashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/', label: 'Home Portal', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: KanbanSquare },
   { href: '/studio', label: 'AI Studio', icon: GalleryVerticalEnd },
+  { href: '/nft-gallery', label: 'NFT Gallery', icon: ImageIcon },
+  { href: '/avatar', label: 'Avatar Room', icon: UserCircle2 },
   { href: '/data-entry', label: 'Data Entry', icon: DollarSign },
   { href: '/reports', label: 'Reports', icon: FileText },
   { href: '/forecasting', label: 'AI Forecasting', icon: Brain },
-  { href: '/chain', label: 'Chain', icon: Blocks },
-  { href: '/voice', label: 'Voice', icon: Mic },
+  { href: '/chain', label: 'Chain Log', icon: Blocks },
+  { href: '/voice', label: 'Voice Systems', icon: Mic },
   { href: '/phase-map', label: 'Phase Map', icon: Network },
   { href: '/threats', label: 'Threat Alerts', icon: ShieldAlert },
 ];
@@ -101,4 +107,3 @@ export default function AppSidebar() {
     </>
   );
 }
-
