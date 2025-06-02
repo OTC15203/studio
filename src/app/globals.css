@@ -8,89 +8,152 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 212 18% 20%; /* Default foreground for light theme */
-    --card: 0 0% 100%;
-    --card-foreground: 212 18% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 212 18% 20%;
-    --primary: 183 100% 36%; /* Teal */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 183 50% 28%; /* Darker Teal */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 212 10% 45%;
-    --accent: 183 100% 42%; /* Lighter Teal */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 1 79% 56%; /* Red */
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 183 100% 40%; /* Teal */
-    
-    --positive: 45 100% 52%; /* Bright Yellow - Profit/Positive Values */
-    --negative: 1 79% 56%;   /* Deep Red - Expenses/Negative Values */
-    --neutral: 183 100% 36%; /* Teal - Revenue/Neutral Info */
+    /* Light Theme - Base Variables */
+    --background-light: 0 0% 96%; /* Off-White/Very Light Gray */
+    --foreground-light: 0 0% 4%; /* Deep Obsidian Black */
+    --card-light: 0 0% 100%; /* White */
+    --card-foreground-light: 0 0% 4%; /* Deep Obsidian Black */
+    --popover-light: 0 0% 100%; /* White */
+    --popover-foreground-light: 0 0% 4%; /* Deep Obsidian Black */
+    --primary-light: 260 100% 62%; /* Resonant Amethyst (slightly darker for light bg) */
+    --primary-foreground-light: 0 0% 98%; /* White/Very Light Gray */
+    --secondary-light: 169 100% 45%; /* Frequency Teal (slightly darker for light bg) */
+    --secondary-foreground-light: 0 0% 98%; /* White/Very Light Gray */
+    --muted-light: 0 0% 90%; /* Light Muted Gray */
+    --muted-foreground-light: 0 0% 30%; /* Darker Muted Gray */
+    --accent-light: 51 100% 50%; /* Royal Solar Gold */
+    --accent-foreground-light: 0 0% 4%; /* Deep Obsidian Black */
+    --destructive-light: 0 84% 60%; /* Standard Red */
+    --destructive-foreground-light: 0 0% 98%; /* White/Very Light Gray */
+    --border-light: 0 0% 85%; /* Light Border */
+    --input-light: 0 0% 92%; /* Light Input */
+    --ring-light: 260 100% 68%; /* Resonant Amethyst */
 
+    --positive-light: 169 100% 50%; /* Frequency Teal */
+    --negative-light: 0 84% 60%; /* Standard Red */
+    --neutral-light: 260 100% 68%; /* Resonant Amethyst */
 
-    --chart-1: var(--positive); 
-    --chart-2: var(--negative);
-    --chart-3: var(--neutral); 
-    --chart-4: 210 50% 60%; /* Neutral Blue */
-    --chart-5: 200 60% 50%; /* Another Neutral Blue/Cyan */
+    --chart-1-light: 51 100% 50%; /* Royal Solar Gold */
+    --chart-2-light: 169 100% 50%; /* Frequency Teal */
+    --chart-3-light: 260 100% 68%; /* Resonant Amethyst */
+    --chart-4-light: 169 100% 65%; /* Lighter Teal */
+    --chart-5-light: 260 100% 75%; /* Lighter Amethyst */
+
+    /* Dark Theme - Base Variables */
+    --background-dark: 0 0% 4%; /* Deep Obsidian Black */
+    --foreground-dark: 0 0% 89%; /* Ethereal Smoke */
+    --card-dark: 0 0% 8%; /* Slightly Lighter Obsidian */
+    --card-foreground-dark: 0 0% 89%; /* Ethereal Smoke */
+    --popover-dark: 0 0% 6%; /* Darker Obsidian */
+    --popover-foreground-dark: 0 0% 89%; /* Ethereal Smoke */
+    --primary-dark: 260 100% 68%; /* Resonant Amethyst */
+    --primary-foreground-dark: 0 0% 98%; /* White/Very Light Gray */
+    --secondary-dark: 169 100% 50%; /* Frequency Teal */
+    --secondary-foreground-dark: 0 0% 4%; /* Deep Obsidian Black (for contrast on Teal) */
+    --muted-dark: 0 0% 12%; /* Darker Muted Gray */
+    --muted-foreground-dark: 0 0% 50%; /* Lighter Muted Gray */
+    --accent-dark: 51 100% 50%; /* Royal Solar Gold */
+    --accent-foreground-dark: 0 0% 4%; /* Deep Obsidian Black (for contrast on Gold) */
+    --destructive-dark: 0 79% 56%; /* Red */
+    --destructive-foreground-dark: 0 0% 98%; /* White/Very Light Gray */
+    --border-dark: 0 0% 15%; /* Dark Border */
+    --input-dark: 0 0% 10%; /* Dark Input */
+    --ring-dark: 260 100% 75%; /* Lighter Amethyst */
+
+    --positive-dark: 169 100% 50%; /* Frequency Teal */
+    --negative-dark: 0 79% 56%; /* Red */
+    --neutral-dark: 260 100% 68%; /* Resonant Amethyst */
+
+    --chart-1-dark: 51 100% 50%; /* Royal Solar Gold */
+    --chart-2-dark: 169 100% 50%; /* Frequency Teal */
+    --chart-3-dark: 260 100% 68%; /* Resonant Amethyst */
+    --chart-4-dark: 169 100% 65%; /* Lighter Teal */
+    --chart-5-dark: 260 100% 75%; /* Lighter Amethyst */
 
     --radius: 0.5rem;
 
-    /* Light theme sidebar (keeping it consistent with overall light theme) */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 212 18% 26.1%;
-    --sidebar-primary: 183 100% 36%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 183 100% 42%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    /* Assign Light Theme by default */
+    --background: var(--background-light);
+    --foreground: var(--foreground-light);
+    --card: var(--card-light);
+    --card-foreground: var(--card-foreground-light);
+    --popover: var(--popover-light);
+    --popover-foreground: var(--popover-foreground-light);
+    --primary: var(--primary-light);
+    --primary-foreground: var(--primary-foreground-light);
+    --secondary: var(--secondary-light);
+    --secondary-foreground: var(--secondary-foreground-light);
+    --muted: var(--muted-light);
+    --muted-foreground: var(--muted-foreground-light);
+    --accent: var(--accent-light);
+    --accent-foreground: var(--accent-foreground-light);
+    --destructive: var(--destructive-light);
+    --destructive-foreground: var(--destructive-foreground-light);
+    --border: var(--border-light);
+    --input: var(--input-light);
+    --ring: var(--ring-light);
+
+    --positive: var(--positive-light);
+    --negative: var(--negative-light);
+    --neutral: var(--neutral-light);
+
+    --chart-1: var(--chart-1-light);
+    --chart-2: var(--chart-2-light);
+    --chart-3: var(--chart-3-light);
+    --chart-4: var(--chart-4-light);
+    --chart-5: var(--chart-5-light);
+
+    /* Sidebar uses light theme variables by default */
+    --sidebar-background: 0 0% 98%; /* Similar to light bg muted */
+    --sidebar-foreground: 0 0% 15%; /* Darker text */
+    --sidebar-primary: var(--primary-light);
+    --sidebar-primary-foreground: var(--primary-foreground-light);
+    --sidebar-accent: var(--accent-light);
+    --sidebar-accent-foreground: var(--accent-foreground-light);
     --sidebar-border: 0 0% 91%;
-    --sidebar-ring: 183 100% 40%;
+    --sidebar-ring: var(--ring-light);
   }
 
   .dark {
-    --background: 212 18% 16%; /* #222831 Deep Blue */
-    --foreground: 0 0% 95%; /* Light Gray for text */
+    --background: var(--background-dark);
+    --foreground: var(--foreground-dark);
+    --card: var(--card-dark);
+    --card-foreground: var(--card-foreground-dark);
+    --popover: var(--popover-dark);
+    --popover-foreground: var(--popover-foreground-dark);
+    --primary: var(--primary-dark);
+    --primary-foreground: var(--primary-foreground-dark);
+    --secondary: var(--secondary-dark);
+    --secondary-foreground: var(--secondary-foreground-dark);
+    --muted: var(--muted-dark);
+    --muted-foreground: var(--muted-foreground-dark);
+    --accent: var(--accent-dark);
+    --accent-foreground: var(--accent-foreground-dark);
+    --destructive: var(--destructive-dark);
+    --destructive-foreground: var(--destructive-foreground-dark);
+    --border: var(--border-dark);
+    --input: var(--input-dark);
+    --ring: var(--ring-dark);
 
-    --card: 212 18% 20%; 
-    --card-foreground: 0 0% 95%;
+    --positive: var(--positive-dark);
+    --negative: var(--negative-dark);
+    --neutral: var(--neutral-dark);
 
-    --popover: 212 18% 14%;
-    --popover-foreground: 0 0% 95%;
+    --chart-1: var(--chart-1-dark);
+    --chart-2: var(--chart-2-dark);
+    --chart-3: var(--chart-3-dark);
+    --chart-4: var(--chart-4-dark);
+    --chart-5: var(--chart-5-dark);
 
-    --primary: 183 100% 36%; /* #00ADB5 Vibrant Teal */
-    --primary-foreground: 0 0% 10%; /* Dark text on Teal buttons for contrast */
-
-    --secondary: 183 60% 28%; /* Darker Teal */
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 212 15% 25%; /* Muted Gray */
-    --muted-foreground: 212 10% 60%; /* Lighter Muted Text */
-
-    --accent: 183 100% 42%; /* Lighter Teal for hover/accent */
-    --accent-foreground: 0 0% 10%; /* Dark text for contrast */
-
-    --destructive: 1 79% 56%; /* #E53935 Deep Red */
-    --destructive-foreground: 0 0% 95%;
-
-    --border: 212 15% 30%; 
-    --input: 212 15% 22%; 
-    --ring: 183 100% 40%; /* Teal for focus rings */
-    
-    /* Chart colors use the CSS variables defined in :root */
-
-    --sidebar-background: 212 18% 12%; /* Even darker for sidebar */
+    /* Sidebar specific dark theme overrides */
+    --sidebar-background: 0 0% 6%; /* Slightly darker than card-dark */
     --sidebar-foreground: 0 0% 80%; /* Lighter text for sidebar */
-    --sidebar-primary: 183 100% 36%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 10%; /* Dark text on primary */
-    --sidebar-accent: 183 80% 30%; /* Darker teal accent for sidebar */
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 212 15% 25%;
-    --sidebar-ring: 183 100% 40%;
+    --sidebar-primary: var(--primary-dark);
+    --sidebar-primary-foreground: var(--primary-foreground-dark);
+    --sidebar-accent: 260 100% 75%; /* Lighter Amethyst for hover/accent */
+    --sidebar-accent-foreground: 0 0% 4%; /* Obsidian on lighter Amethyst */
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: var(--ring-dark);
   }
 }
 
