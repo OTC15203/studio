@@ -46,6 +46,7 @@ import {
   ClipboardList, // For Quest Log
   Atom, // For Soul Core
   BookOpenText, // For Prophecy
+  MessageCircle, // For Ember Chat
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
@@ -82,6 +83,7 @@ const navItems = [
   { href: '/quest-log', label: 'Encrypted Quest Log', icon: ClipboardList },
   { href: '/soul-core', label: 'Soul Matrix Core', icon: Atom },
   { href: '/prophecy', label: 'Legacy Prophecy', icon: BookOpenText },
+  { href: '/ember-chat', label: 'Ember Chat', icon: MessageCircle },
 ];
 
 export default function AppSidebar() {

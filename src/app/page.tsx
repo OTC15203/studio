@@ -5,7 +5,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
-import { ArrowRight, Waves } from 'lucide-react';
+import { ArrowRight, Waves, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PortalPage() {
   return (
@@ -31,6 +32,17 @@ export default function PortalPage() {
             ENTER THE FISK DIMENSION
             <ArrowRight className="ml-3 h-6 w-6" />
           </Button>
+
+          <Link href="/ember-chat" className="w-full max-w-xs">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full text-base py-6 rounded-lg border-2 border-accent hover:bg-accent/10 hover:border-accent/80 transition-all duration-300"
+            >
+              <MessageCircle className="mr-2 h-5 w-5" />
+              Join Ember Group Chat
+            </Button>
+          </Link>
 
           <div className="w-full max-w-md mt-6">
             <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
