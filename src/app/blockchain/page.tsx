@@ -70,30 +70,35 @@ function generateMockTransactions(): Transaction[] {
 
 // Mock blockchain data fetching function
 async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: Transaction[], total: number}> {
-  await new Promise(resolve => setTimeout(resolve, 750)); 
+  // Reduced delay for better perceived performance
+  await new Promise(resolve => setTimeout(resolve, 400)); 
   
   const allTransactions = generateMockTransactions();
 
   let filteredTransactions = allTransactions;
 
-  if (filters.searchTerm) {
-    const term = filters.searchTerm.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(tx => 
-      tx.id.toLowerCase().includes(term) ||
-      tx.data.type.toLowerCase().includes(term) ||
-      (tx.data.description && tx.data.description.toLowerCase().includes(term)) ||
-      (tx.data.user && tx.data.user.toLowerCase().includes(term))
-    );
-  }
-
+  // Optimize filtering by applying most selective filters first
   if (filters.types && filters.types.length > 0) {
     filteredTransactions = filteredTransactions.filter(tx => filters.types.includes(tx.data.type));
   }
 
   if (filters.dateRange?.from && filters.dateRange?.to) {
+    const fromTime = filters.dateRange.from.getTime();
+    const toTime = filters.dateRange.to.getTime();
     filteredTransactions = filteredTransactions.filter(tx => {
-      const txDate = new Date(tx.timestamp);
-      return txDate >= filters.dateRange.from && txDate <= filters.dateRange.to;
+      return tx.timestamp >= fromTime && tx.timestamp <= toTime;
+    });
+  }
+
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    filteredTransactions = filteredTransactions.filter(tx => {
+      // Early return optimization
+      if (tx.id.toLowerCase().includes(term)) return true;
+      if (tx.data.type.toLowerCase().includes(term)) return true;
+      if (tx.data.description?.toLowerCase().includes(term)) return true;
+      if (tx.data.user?.toLowerCase().includes(term)) return true;
+      return false;
     });
   }
 

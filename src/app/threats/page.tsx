@@ -23,10 +23,13 @@ interface DisplayThreat extends Threat {
   details: string;
 }
 
-// Mock threat detection data fetching
-async function fetchThreats(filters: { severities: string[], statuses: string[] }): Promise<DisplayThreat[]> {
-  await new Promise(resolve => setTimeout(resolve, 1200)); 
-  const allThreats: DisplayThreat[] = [
+// Mock threat detection data - cached for performance
+let cachedThreats: DisplayThreat[] | null = null;
+
+function generateMockThreats(): DisplayThreat[] {
+  if (cachedThreats) return cachedThreats;
+  
+  cachedThreats = [
     { id: 'threat-001', type: 'SQL Injection Attempt', severity: 'High', timestamp: Date.now() - 3600000, status: 'new', details: 'Detected on login endpoint from IP 192.168.1.100. Payload: OR 1=1' },
     { id: 'threat-002', type: 'Unusual Data Modification', severity: 'Medium', timestamp: Date.now() - 7200000, status: 'investigating', details: 'User account "admin" modified critical financial data outside business hours.' },
     { id: 'threat-003', type: 'Failed Login Spike', severity: 'Low', timestamp: Date.now() - 10800000, status: 'resolved', details: 'Multiple failed login attempts for user "guest". Blocked IP for 24h.' },
@@ -36,11 +39,23 @@ async function fetchThreats(filters: { severities: string[], statuses: string[] 
     { id: 'threat-007', type: 'Privilege Escalation Attempt', severity: 'High', timestamp: Date.now() - 2400000, status: 'investigating', details: 'User "support_agent" attempted to access admin-only functions.' },
   ];
   
+  return cachedThreats;
+}
+
+// Mock threat detection data fetching
+async function fetchThreats(filters: { severities: string[], statuses: string[] }): Promise<DisplayThreat[]> {
+  // Reduced delay for better perceived performance
+  await new Promise(resolve => setTimeout(resolve, 600)); 
+  
+  const allThreats = generateMockThreats();
+  
   let filteredThreats = allThreats;
+  
+  // Apply filters efficiently
   if (filters.severities.length > 0) {
     filteredThreats = filteredThreats.filter(t => filters.severities.includes(t.severity.toLowerCase()));
   }
-   if (filters.statuses.length > 0) {
+  if (filters.statuses.length > 0) {
     filteredThreats = filteredThreats.filter(t => filters.statuses.includes(t.status));
   }
 
@@ -77,7 +92,7 @@ export default function ThreatsPage() {
     loadThreats();
   }, [loadThreats]);
 
-  const getSeverityBadgeVariant = (severity: string): "destructive" | "default" | "secondary" | "outline" => {
+  const getSeverityBadgeVariant = useCallback((severity: string): "destructive" | "default" | "secondary" | "outline" => {
     switch (severity.toLowerCase()) {
       case 'critical': return "destructive";
       case 'high': return "destructive";
@@ -85,9 +100,9 @@ export default function ThreatsPage() {
       case 'low': return "secondary";
       default: return "outline";
     }
-  };
+  }, []);
   
-  const getSeverityIcon = (severity: string) => {
+  const getSeverityIcon = useCallback((severity: string) => {
     switch (severity.toLowerCase()) {
       case 'critical': return <ShieldAlert className="h-5 w-5 text-red-400" />;
       case 'high': return <AlertTriangle className="h-5 w-5 text-red-500" />;
@@ -95,20 +110,18 @@ export default function ThreatsPage() {
       case 'low': return <CheckCircle className="h-5 w-5 text-green-500" />; 
       default: return <Info className="h-5 w-5 text-muted-foreground" />;
     }
-  };
+  }, []);
 
-  const handleThreatSelect = (threat: DisplayThreat) => {
+  const handleThreatSelect = useCallback((threat: DisplayThreat) => {
     setSelectedThreat(threat);
-  };
+  }, []);
   
-  const updateThreatStatus = (threatId: string, newStatus: 'new' | 'investigating' | 'resolved') => {
+  const updateThreatStatus = useCallback((threatId: string, newStatus: 'new' | 'investigating' | 'resolved') => {
     setThreats(prevThreats => 
       prevThreats.map(t => t.id === threatId ? { ...t, status: newStatus } : t)
     );
-    if (selectedThreat && selectedThreat.id === threatId) {
-      setSelectedThreat(prev => prev ? { ...prev, status: newStatus } : null);
-    }
-  };
+    setSelectedThreat(prev => prev && prev.id === threatId ? { ...prev, status: newStatus } : prev);
+  }, []);
 
 
   return (
