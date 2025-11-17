@@ -61,17 +61,21 @@ export default function ThreatsPage() {
     const fetchedThreats = await fetchThreats({ severities: severityFilter, statuses: statusFilter });
     setThreats(fetchedThreats);
     setIsLoading(false);
-    if (fetchedThreats.length > 0 && !selectedThreat) {
-      setSelectedThreat(fetchedThreats[0]);
-    } else if (fetchedThreats.length === 0) {
-      setSelectedThreat(null);
-    }
-  }, [severityFilter, statusFilter, selectedThreat]);
+    // Only set selected threat if none is selected and we have threats
+    setSelectedThreat(prev => {
+      if (fetchedThreats.length > 0 && !prev) {
+        return fetchedThreats[0];
+      } else if (fetchedThreats.length === 0) {
+        return null;
+      }
+      return prev;
+    });
+  }, [severityFilter, statusFilter]);
 
 
   useEffect(() => {
     loadThreats();
-  }, [loadThreats]); // Removed severityFilter and statusFilter to rely on useCallback dependency
+  }, [loadThreats]);
 
   const getSeverityBadgeVariant = (severity: string): "destructive" | "default" | "secondary" | "outline" => {
     switch (severity.toLowerCase()) {
