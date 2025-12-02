@@ -38,8 +38,51 @@ yarn-error.log*
 next-env.d.ts
 
 .genkit/*
-.env*
+
+# Environment variables - NEVER commit these files
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Secrets and credentials
+*.key
+*.secret
+*credentials*.json
+*secrets*.json
+firebase-adminsdk*.json
+service-account*.json
+google-credentials*.json
+
+# Private keys and certificates
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+# Wallet and blockchain private keys
+*wallet*.json
+*keystore*.json
+*.keystore
+
+# Biometric and sensitive logs
+*biometric*.log
+*auth*.log
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+.firebase/
+
+# IDE and editor specific files that may contain sensitive info
+.idea/
+*.sublime-workspace
+
+# Local configuration that shouldn't be shared
+local.settings.json
+*.local.json
