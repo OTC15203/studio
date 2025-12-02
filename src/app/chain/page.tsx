@@ -239,7 +239,7 @@ export default function ChainLogPage() {
                       <div className="text-xs text-muted-foreground">Block: {tx.blockNumber} ({tx.confirmations} confs)</div>
                     </TableCell><TableCell>
                       <Badge variant={getBadgeVariantForType(tx.data.type)} className="capitalize text-[10px] py-0.5 px-1.5 leading-tight"> 
-                       {tx.data.type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}
+                       {tx.data.type?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'N/A'}
                       </Badge>
                     </TableCell><TableCell className="max-w-xs"> {/* max-w added */}
                       <p className="truncate font-medium" title={tx.data.description}>{tx.data.description}</p>
