@@ -18,7 +18,15 @@ export interface Transaction {
   /**
    * Optional status or other metadata returned by the API.
    */
-  status?: string; 
+  status?: string;
+  /**
+   * The block number where this transaction was included.
+   */
+  blockNumber?: number;
+  /**
+   * The number of confirmations for this transaction.
+   */
+  confirmations?: number;
 }
 
 /**

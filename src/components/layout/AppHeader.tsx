@@ -7,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Bell, Wallet, User } from "lucide-react";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
+// Extend Window interface for ethereum provider
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+    };
+  }
+}
+
 export default function AppHeader() {
   const handleWalletClick = () => {
     // TODO: Implement actual wallet connection logic here
