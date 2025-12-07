@@ -65,7 +65,7 @@ export default function NftGalleryPage() {
                   <CardDescription className="text-xs text-muted-foreground mb-2 h-10 overflow-hidden">{nft.description}</CardDescription>
                   <div className="flex justify-between items-center mt-3">
                     <p className="text-lg font-semibold text-accent">{nft.price}</p>
-                    <ShieldCheck className="h-5 w-5 text-green-500" title="Soul-Signature Encrypted" />
+                    <ShieldCheck className="h-5 w-5 text-green-500" aria-label="Soul-Signature Encrypted" />
                   </div>
                    <Button variant="outline" className="w-full mt-4 border-primary/50 hover:bg-primary/10 hover:text-primary">
                     View Details

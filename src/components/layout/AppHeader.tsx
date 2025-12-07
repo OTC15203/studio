@@ -7,11 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Bell, Wallet, User } from "lucide-react";
 import { ThirdEyeDomeIcon } from '@/components/icons/ThirdEyeDomeIcon';
 
+// Extend Window interface for ethereum
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
 export default function AppHeader() {
   const handleWalletClick = () => {
     // TODO: Implement actual wallet connection logic here
     // For now, we can check if MetaMask is available and log messages
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window !== 'undefined' && window.ethereum) {
       console.log('MetaMask is installed!');
       // Example: try to request accounts
       // window.ethereum.request({ method: 'eth_requestAccounts' })

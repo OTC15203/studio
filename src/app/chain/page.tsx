@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import type { Transaction as BlockchainTransaction } from '@/services/blockchain
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import type { DateRange } from "react-day-picker";
 import { toast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -24,11 +25,13 @@ import {
 
 const ALL_TRANSACTION_TYPES = ['revenue', 'expense', 'system_update', 'data_access', 'config_change', 'user_auth', 'api_call', 'security_event', 'audit_log', 'nft_mint', 'token_transfer', 'contract_deploy', 'oracle_update']; 
 
-// Mock blockchain data fetching function
-async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: BlockchainTransaction[], total: number}> {
-  await new Promise(resolve => setTimeout(resolve, 750)); 
+// Cache mock data to avoid regenerating on every call
+let cachedMockData: BlockchainTransaction[] | null = null;
+
+function generateMockTransactions(): BlockchainTransaction[] {
+  if (cachedMockData) return cachedMockData;
   
-  const allTransactions: BlockchainTransaction[] = Array.from({ length: 250 }, (_, i) => { // Increased mock data
+  cachedMockData = Array.from({ length: 250 }, (_, i) => { // Increased mock data
       const type = ALL_TRANSACTION_TYPES[i % ALL_TRANSACTION_TYPES.length];
       const isFinancial = type === 'revenue' || type === 'expense';
       const isSystem = ['system_update', 'config_change', 'oracle_update'].includes(type);
@@ -48,7 +51,7 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
           amount: isFinancial || isTokenTransfer ? parseFloat((Math.random() * 20000).toFixed(2)) : undefined, 
           currency: isFinancial || isTokenTransfer ? (['USD', 'ETH', 'BTC', 'FISK', 'USDC', 'DAI'][i % 6]) : undefined, 
           description: isFinancial ? `Financial Transaction ${i+1}` : 
-                       `${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Event ${i+1}`,
+                       `${type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())} Event ${i+1}`,
           user: `user_${(i%50)+1}@fisk.dimension`, 
           details: isSystem ? { parameter: `param_sys_${i%5}`, oldValue: `${i*12}`, newValue: `${i*12 + (i%3)}`, component: `core_module_${i%2}` } :
                      isDataAccess ? { resource: `resource_id_${i%10}`, action: (['read', 'write', 'delete', 'grant_perm'][i%4]), sensitivity: (['low', 'medium', 'high'][i%3]) } :
@@ -66,29 +69,43 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
         confirmations: Math.floor(Math.random() * 200) + 6, 
       };
     });
+  
+  return cachedMockData;
+}
+
+// Mock blockchain data fetching function
+async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: BlockchainTransaction[], total: number}> {
+  // Reduced delay for better perceived performance
+  await new Promise(resolve => setTimeout(resolve, 400)); 
+  
+  const allTransactions = generateMockTransactions();
 
   let filteredTransactions = allTransactions;
 
-  if (filters.searchTerm) {
-    const term = filters.searchTerm.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(tx => 
-      tx.id.toLowerCase().includes(term) ||
-      tx.data.type.toLowerCase().includes(term) ||
-      (tx.data.description && tx.data.description.toLowerCase().includes(term)) ||
-      (tx.data.user && tx.data.user.toLowerCase().includes(term)) ||
-      (tx.data.currency && tx.data.currency.toLowerCase().includes(term)) ||
-      (tx.data.details && Object.values(tx.data.details).some(val => String(val).toLowerCase().includes(term)))
-    );
-  }
-
+  // Optimize filtering by early returns and combined checks
   if (filters.types && filters.types.length > 0) {
     filteredTransactions = filteredTransactions.filter(tx => filters.types.includes(tx.data.type));
   }
 
   if (filters.dateRange?.from && filters.dateRange?.to) {
+    const fromTime = filters.dateRange.from.getTime();
+    const toTime = filters.dateRange.to.getTime();
     filteredTransactions = filteredTransactions.filter(tx => {
-      const txDate = new Date(tx.timestamp);
-      return txDate >= filters.dateRange.from && txDate <= filters.dateRange.to;
+      return tx.timestamp >= fromTime && tx.timestamp <= toTime;
+    });
+  }
+
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    filteredTransactions = filteredTransactions.filter(tx => {
+      // Early return optimization - check most common fields first
+      if (tx.id.toLowerCase().includes(term)) return true;
+      if (tx.data.type.toLowerCase().includes(term)) return true;
+      if (tx.data.description?.toLowerCase().includes(term)) return true;
+      if (tx.data.user?.toLowerCase().includes(term)) return true;
+      if (tx.data.currency?.toLowerCase().includes(term)) return true;
+      if (tx.data.details && Object.values(tx.data.details).some(val => String(val).toLowerCase().includes(term))) return true;
+      return false;
     });
   }
 
@@ -107,12 +124,15 @@ export default function ChainLogPage() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   
-  const itemsPerPage = 20; 
+  const itemsPerPage = 20;
+  
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const loadTransactions = useCallback(async () => {
     setIsLoading(true);
     const filters = { 
-      searchTerm, 
+      searchTerm: debouncedSearchTerm, 
       types: selectedTypes,
       dateRange
     };
@@ -120,7 +140,7 @@ export default function ChainLogPage() {
     setTransactions(fetchedTransactions);
     setTotalPages(Math.ceil(total / itemsPerPage));
     setIsLoading(false);
-  }, [currentPage, searchTerm, selectedTypes, dateRange, itemsPerPage]); // Added itemsPerPage
+  }, [currentPage, debouncedSearchTerm, selectedTypes, dateRange, itemsPerPage]);
 
   useEffect(() => {
     loadTransactions();
@@ -131,28 +151,28 @@ export default function ChainLogPage() {
     setCurrentPage(1); 
   };
 
-  const handleTypeToggle = (type: string) => {
+  const handleTypeToggle = useCallback((type: string) => {
     setSelectedTypes(prev => 
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleCopyToClipboard = (text: string) => {
+  const handleCopyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       toast({ title: "Copied to clipboard!", description: text.substring(0,50) + "..." });
     }).catch(err => {
       toast({ variant: "destructive", title: "Failed to copy", description: "Could not copy text to clipboard." });
     });
-  };
+  }, []);
 
-  const getBadgeVariantForType = (type: string) => {
+  const getBadgeVariantForType = useCallback((type: string) => {
     if (['revenue', 'token_transfer'].includes(type)) return 'default';
     if (['expense', 'security_event'].includes(type)) return 'destructive';
     if (['system_update', 'config_change', 'contract_deploy', 'oracle_update'].includes(type)) return 'secondary';
     if (['nft_mint'].includes(type)) return 'outline'; // Consider a specific color for NFTs
     return 'outline';
-  };
+  }, []);
 
   return (
     <div className="container mx-auto py-8">
@@ -239,7 +259,7 @@ export default function ChainLogPage() {
                       <div className="text-xs text-muted-foreground">Block: {tx.blockNumber} ({tx.confirmations} confs)</div>
                     </TableCell><TableCell>
                       <Badge variant={getBadgeVariantForType(tx.data.type)} className="capitalize text-[10px] py-0.5 px-1.5 leading-tight"> 
-                       {tx.data.type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}
+                       {tx.data.type?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'N/A'}
                       </Badge>
                     </TableCell><TableCell className="max-w-xs"> {/* max-w added */}
                       <p className="truncate font-medium" title={tx.data.description}>{tx.data.description}</p>

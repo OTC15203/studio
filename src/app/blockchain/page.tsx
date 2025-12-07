@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import type { Transaction } from '@/services/blockchain';
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import type { DateRange } from "react-day-picker";
 import { toast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -24,11 +25,13 @@ import {
 
 const ALL_TRANSACTION_TYPES = ['revenue', 'expense', 'system_update', 'data_access', 'config_change', 'user_auth', 'api_call', 'security_event', 'audit_log']; 
 
-// Mock blockchain data fetching function
-async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: Transaction[], total: number}> {
-  await new Promise(resolve => setTimeout(resolve, 750)); 
+// Cache mock data to avoid regenerating on every call
+let cachedMockData: Transaction[] | null = null;
+
+function generateMockTransactions(): Transaction[] {
+  if (cachedMockData) return cachedMockData;
   
-  const allTransactions: Transaction[] = Array.from({ length: 153 }, (_, i) => { 
+  cachedMockData = Array.from({ length: 153 }, (_, i) => { 
       const type = ALL_TRANSACTION_TYPES[i % ALL_TRANSACTION_TYPES.length];
       const isFinancial = type === 'revenue' || type === 'expense';
       const isSystem = type === 'system_update' || type === 'config_change';
@@ -61,27 +64,41 @@ async function fetchBlockchainTransactions(page: number = 1, limit: number = 10,
         confirmations: Math.floor(Math.random() * 100) + 1, 
       };
     });
+  
+  return cachedMockData;
+}
+
+// Mock blockchain data fetching function
+async function fetchBlockchainTransactions(page: number = 1, limit: number = 10, filters: any = {}): Promise<{transactions: Transaction[], total: number}> {
+  // Reduced delay for better perceived performance
+  await new Promise(resolve => setTimeout(resolve, 400)); 
+  
+  const allTransactions = generateMockTransactions();
 
   let filteredTransactions = allTransactions;
 
-  if (filters.searchTerm) {
-    const term = filters.searchTerm.toLowerCase();
-    filteredTransactions = filteredTransactions.filter(tx => 
-      tx.id.toLowerCase().includes(term) ||
-      tx.data.type.toLowerCase().includes(term) ||
-      (tx.data.description && tx.data.description.toLowerCase().includes(term)) ||
-      (tx.data.user && tx.data.user.toLowerCase().includes(term))
-    );
-  }
-
+  // Optimize filtering by applying most selective filters first
   if (filters.types && filters.types.length > 0) {
     filteredTransactions = filteredTransactions.filter(tx => filters.types.includes(tx.data.type));
   }
 
   if (filters.dateRange?.from && filters.dateRange?.to) {
+    const fromTime = filters.dateRange.from.getTime();
+    const toTime = filters.dateRange.to.getTime();
     filteredTransactions = filteredTransactions.filter(tx => {
-      const txDate = new Date(tx.timestamp);
-      return txDate >= filters.dateRange.from && txDate <= filters.dateRange.to;
+      return tx.timestamp >= fromTime && tx.timestamp <= toTime;
+    });
+  }
+
+  if (filters.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    filteredTransactions = filteredTransactions.filter(tx => {
+      // Early return optimization
+      if (tx.id.toLowerCase().includes(term)) return true;
+      if (tx.data.type.toLowerCase().includes(term)) return true;
+      if (tx.data.description?.toLowerCase().includes(term)) return true;
+      if (tx.data.user?.toLowerCase().includes(term)) return true;
+      return false;
     });
   }
 
@@ -100,12 +117,15 @@ export default function BlockchainLogPage() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   
-  const itemsPerPage = 15; 
+  const itemsPerPage = 15;
+  
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const loadTransactions = useCallback(async () => {
     setIsLoading(true);
     const filters = { 
-      searchTerm, 
+      searchTerm: debouncedSearchTerm, 
       types: selectedTypes,
       dateRange
     };
@@ -113,7 +133,7 @@ export default function BlockchainLogPage() {
     setTransactions(fetchedTransactions);
     setTotalPages(Math.ceil(total / itemsPerPage));
     setIsLoading(false);
-  }, [currentPage, searchTerm, selectedTypes, dateRange]);
+  }, [currentPage, debouncedSearchTerm, selectedTypes, dateRange]);
 
   useEffect(() => {
     loadTransactions();
@@ -124,12 +144,12 @@ export default function BlockchainLogPage() {
     setCurrentPage(1); 
   };
 
-  const handleTypeToggle = (type: string) => {
+  const handleTypeToggle = useCallback((type: string) => {
     setSelectedTypes(prev => 
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
     setCurrentPage(1);
-  };
+  }, []);
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
